@@ -23,10 +23,12 @@ return new class extends Migration
             $table->string('vacancy');
             $table->string('passport_no');
             $table->string('driver_license_no');
+
             $table->integer('nrc_code');
             $table->string('nrc_name');
             $table->string('nrc_r_m');
             $table->integer('nrc_number');
+
             $table->string('gender');
             $table->string('blood_type');
             $table->string('marital_status');

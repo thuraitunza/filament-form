@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\EmployeeResource\Pages;
 use App\Filament\Resources\EmployeeResource\RelationManagers;
 use App\Models\Employee;
+use App\Models\NRC;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
@@ -14,6 +15,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -81,34 +84,24 @@ class EmployeeResource extends Resource
                             Fieldset::make('NRC')
                                 ->schema([
                                     Select::make('nrc_code')
-                                        ->options([
-                                            '1' => '1',
-                                            '2' => '2',
-                                            '3' => '3',
-                                            '4' => '4',
-                                            '5' => '5',
-                                            '6' => '6',
-                                            '7' => '7',
-                                            '8' => '8',
-                                            '9' => '9',
-                                            '10' => '10',
-                                            '11' => '11',
-                                            '12' => '12',
-                                        ]),
+                                        ->label('Code')
+                                        ->options(NRC::select('nrc_code')->distinct()->orderBy('nrc_code', 'asc')->pluck('nrc_code','nrc_code'))
+                                        ->live()
+                                        ->afterStateUpdated(fn(Set $set, ?string $state) => $set('name_en', NRC::select('name_en')->where('nrc_code', $state)->pluck('name_en', 'name_en'))),
                                     Select::make('nrc_name')
-                                        ->options([
-                                            'maahna' => 'maahna',
-                                            'mana' => 'mana',
-                                        ]),
+                                        ->label('Name')
+                                        ->options(function (Get $get) {
+                                            return $get('name_en');}),
                                     Select::make('nrc_r_m')
+                                        ->label('Religion')
                                         ->options([
-                                            'နိုင်' => 'နိုင်',
-                                            'ဧည့်' => 'ဧည့်',
-                                            'ပြု' => 'ပြု'
+                                            "n" => "N",
+                                            "p" => "P",
+                                            "a" => "A",
                                         ]),
 
-                                    TextInput::make('nrc_number'),
-                                ])->columns(3)->columnSpan(1),
+                                    TextInput::make('nrc_number')->label('Number'),
+                                ])->columns(4)->columnSpan(1),
                             Select::make('gender')
                                 ->options([
                                     'Male' => 'Male',
@@ -246,12 +239,19 @@ class EmployeeResource extends Resource
                 Tables\Columns\TextColumn::make('nationality'),
                 Tables\Columns\TextColumn::make('vacancy'),
                 Tables\Columns\TextColumn::make('passport_no'),
+                Tables\Columns\TextColumn::make('driver_license_no'),
+                Tables\Columns\TextColumn::make('nrc_code'),
+                Tables\Columns\TextColumn::make('nrc_name'),
+                Tables\Columns\TextColumn::make('nrc_r_m'),
+                Tables\Columns\TextColumn::make('nrc_number'),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -272,6 +272,7 @@ class EmployeeResource extends Resource
         return [
             'index' => Pages\ListEmployees::route('/'),
             'create' => Pages\CreateEmployee::route('/create'),
+            'view' => Pages\ViewEmployee::route('/{record}'),
             'edit' => Pages\EditEmployee::route('/{record}/edit'),
         ];
     }
